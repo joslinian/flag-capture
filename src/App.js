@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 function App() {
   const [loading, setLoading] = useState(true);
   const [flag, setFlag] = useState("");
-  const [displayedFlag, setDisplayedFlag] = useState([]);
+  const [displayedChars, setDisplayedChars] = useState(0);
   const [animationComplete, setAnimationComplete] = useState(false);
 
   // URL to fetch the flag from
@@ -32,26 +32,36 @@ function App() {
   // Typewriter effect
   useEffect(() => {
     if (!loading && flag && !animationComplete) {
-      let currentIndex = 0;
+      let timer = null;
 
-      const interval = setInterval(() => {
-        console.log(currentIndex);
-        if (currentIndex < flag.length) {
-          setDisplayedFlag((prev) => {
-            console.log("prev: ", prev);
-            console.log("current index char: ", flag[currentIndex]);
-            return [...prev, flag[currentIndex]];
+      const startAnimation = () => {
+        timer = setInterval(() => {
+          setDisplayedChars((prev) => {
+            const next = prev + 1;
+            console.log(
+              `Displaying ${next} characters: ${flag.substring(0, next)}`
+            );
+
+            if (next >= flag.length) {
+              clearInterval(timer);
+              setAnimationComplete(true);
+            }
+
+            return next;
           });
-          currentIndex++;
-        } else {
-          clearInterval(interval);
-          setAnimationComplete(true);
-        }
-      }, 500); // 500ms delay between characters
+        }, 500);
+      };
 
-      return () => clearInterval(interval);
+      startAnimation();
+
+      return () => {
+        if (timer) clearInterval(timer);
+      };
     }
   }, [loading, flag, animationComplete]);
+
+  // Convert the substring to an array of characters for rendering
+  const displayedFlagArray = flag.substring(0, displayedChars).split("");
 
   return (
     <div>
@@ -59,7 +69,7 @@ function App() {
         <p>Loading...</p>
       ) : (
         <ul>
-          {displayedFlag.map((char, index) => (
+          {displayedFlagArray.map((char, index) => (
             <li key={index}>{char}</li>
           ))}
         </ul>
